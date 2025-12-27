@@ -11,6 +11,7 @@ scikit-learn
 rouge_score
 flask-sqlalchemy
 pydub
+audioop-lts
 pymupdf
 groq
 gunicorn
