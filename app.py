@@ -33,9 +33,24 @@ if os.name == 'nt':  # Windows
         os.environ["PATH"] = FFMPEG_PATH + os.pathsep + os.environ.get("PATH", "")
 # On Linux/Render, ffmpeg is installed via apt and available in PATH
 
+# Handle Python 3.13 compatibility for pydub
+try:
+    import audioop
+except ImportError:
+    try:
+        from audioop_lts import audioop
+        import sys
+        sys.modules['audioop'] = audioop
+    except ImportError:
+        print("WARNING: audioop module not found. Audio processing (pydub) may fail.")
+
 UPLOAD_FOLDER = "uploads"
 ALLOWED_EXTENSIONS = {"pdf"}
 AUDIO_FOLDER = "static/audio"
+
+# Ensure directories exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -694,16 +709,22 @@ IMPORTANT: Each point should be ELABORATED with 2-4 sentences. Copy key phrases 
 
 
 def generate_tts_audio(text, filename):
-    """Generate TTS audio file from text using pyttsx3. Skips for very long text."""
+    """Generate TTS audio file from text. Skips for very long text or non-Windows platforms."""
     if len(text) > 10000:
         print("Summary too long for TTS, skipping to save time.")
         return None
+    
+    if os.name != 'nt':
+        print("TTS (pyttsx3) is currently only supported on Windows in this environment. Skipping.")
+        return None
+        
     try:
+        import pyttsx3
         import pythoncom
         pythoncom.CoInitialize()
         engine = pyttsx3.init()
-        engine.setProperty('rate', 150)  # Speed of speech
-        engine.setProperty('volume', 0.9)  # Volume level (0.0 to 1.0)
+        engine.setProperty('rate', 150)
+        engine.setProperty('volume', 0.9)
         filepath = os.path.join(app.config["AUDIO_FOLDER"], filename)
         os.makedirs(app.config["AUDIO_FOLDER"], exist_ok=True)
         engine.save_to_file(text, filepath)
