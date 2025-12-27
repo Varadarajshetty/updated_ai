@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - ExplainIT AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #E8D5F2 0%, #DCD1E8 50%, #C9B8E0 100%);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Decorative circles */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      pointer-events: none;
+    }
+
+    body::before {
+      width: 120px;
+      height: 120px;
+      top: 20px;
+      left: 120px;
+    }
+
+    body::after {
+      width: 80px;
+      height: 80px;
+      top: 30px;
+      right: 80px;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.7) !important;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .navbar-brand {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    .form-control {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .form-control:focus {
+      background: white;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+      <a href="/" class="navbar-brand">📚 ExplainIT AI</a>
+      <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="fas fa-home me-1"></i>Home
+      </a>
+    </div>
+  </nav>
+
+  <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100 justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="text-center mb-5">
+          <h1 class="display-4 mb-3" style="font-size: 3.5rem;">Welcome Back</h1>
+          <p class="lead text-muted">Sign in to your account to continue</p>
+        </div>
+
+        <div class="card shadow-lg border-0 rounded-4">
+          <div class="card-body p-5">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div
+              class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show rounded-3"
+              role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="post" action="/login_validation">
+              <div class="mb-4">
+                <label for="email" class="form-label fw-semibold">
+                  <i class="fas fa-envelope me-2"></i>Email Address
+                </label>
+                <input type="email" class="form-control form-control-lg rounded-3" id="email" name="email"
+                  placeholder="Enter your email" required>
+              </div>
+
+              <div class="mb-4">
+                <label for="password" class="form-label fw-semibold">
+                  <i class="fas fa-lock me-2"></i>Password
+                </label>
+                <input type="password" class="form-control form-control-lg rounded-3" id="password" name="password"
+                  placeholder="Enter your password" required>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg w-100 mb-3 rounded-3">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+              </button>
+            </form>
+
+            <div class="text-center">
+              <p class="mb-0">Don't have an account?
+                <a href="/add_users" class="text-decoration-none fw-semibold" style="color: #667eea;">Create one
+                  here</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

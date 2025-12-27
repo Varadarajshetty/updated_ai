@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Summarization Result - ExplainIT AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #E8D5F2 0%, #DCD1E8 50%, #C9B8E0 100%);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Decorative circles */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      pointer-events: none;
+    }
+
+    body::before {
+      width: 120px;
+      height: 120px;
+      top: 20px;
+      left: 120px;
+    }
+
+    body::after {
+      width: 80px;
+      height: 80px;
+      top: 30px;
+      right: 80px;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.7) !important;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .navbar-brand {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    /* AI Assistant Button */
+    .ai-assistant-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .ai-assistant-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(102, 126, 234, 0.7);
+    }
+
+    /* Chat Panel */
+    .chat-panel {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      width: 380px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .chat-panel.active {
+      display: flex;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 20px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-message.user {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-message.assistant {
+      background: #f0f0f5;
+      color: #333;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-input-container {
+      padding: 15px;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 10px 15px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .chat-input:focus {
+      border-color: #667eea;
+    }
+
+    .chat-send {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .chat-send:hover {
+      transform: scale(1.1);
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 10px 14px;
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #667eea;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+      }
+
+      40% {
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+      <a href="" class="navbar-brand">📚 ExplainIT AI</a>
+    </div>
+  </nav>
+
+  <div class="container mx-auto py-5 px-4">
+    <!-- Title -->
+    <h1 class="text-center mb-4" style="font-size: 2rem;">
+      Summarization Result
+    </h1>
+
+    <!-- Summary Card -->
+    <div class="card rounded-4 p-4 mb-4">
+      <h2 class="mb-3" style="color: #667eea; font-weight: 600;">📌 Output</h2>
+
+      <!-- Render as safe HTML (can include bold, headings, etc.) -->
+      <div style="white-space: pre-line;">
+        {{ summary | safe }}
+      </div>
+
+      {% if audio %}
+      <!-- Audio Player -->
+      <div class="mt-4">
+        <h3 class="mb-2" style="color: #667eea; font-weight: 600;">🔊 Listen to Summary</h3>
+        <audio controls class="w-100">
+          <source src="{{ url_for('static', filename='audio/' + audio) }}" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Attend Quiz Button -->
+    {% if flashcards %}
+    <div class="text-center mt-3">
+      <button type="button" class="btn btn-success rounded-3 px-4 py-2" id="attendQuizBtn">📚 Attend Quiz</button>
+    </div>
+    {% endif %}
+
+    {% if flashcards %}
+    <!-- Flashcards Section -->
+    <div class="card rounded-4 p-4 mt-4" style="background: rgba(255, 255, 255, 0.9); display: none;"
+      id="flashcardsSection">
+      <h2 class="mb-3" style="color: #667eea; font-weight: 600; font-size: 1.25rem;">📚 Flashcards Quiz</h2>
+
+      {% if flashcards.mcqs %}
+      <h4>Multiple Choice Questions</h4>
+      <form id="quizForm">
+        {% for mcq in flashcards.mcqs %}
+        {% set mcq_index = loop.index0 %}
+        <div class="mb-3">
+          <p><strong>Q{{ loop.index }}:</strong> {{ mcq.question }}</p>
+          {% for option in mcq.options %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="mcq_{{ mcq_index }}" value="{{ option.split(')')[0] }}"
+              id="mcq_{{ mcq_index }}_{{ option.split(')')[0] }}">
+            <label class="form-check-label" for="mcq_{{ mcq_index }}_{{ option.split(')')[0] }}">{{ option }}</label>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+
+        {% if flashcards.short_questions %}
+        <h4>Short Answer Questions</h4>
+        {% for sq in flashcards.short_questions %}
+        <div class="mb-3">
+          <label for="short_{{ loop.index0 }}" class="form-label"><strong>Q{{ loop.index }}:</strong> {{ sq.question
+            }}</label>
+          <input type="text" class="form-control" id="short_{{ loop.index0 }}" name="short_{{ loop.index0 }}">
+        </div>
+        {% endfor %}
+        {% endif %}
+      </form>
+
+      <div class="text-center mt-3">
+        <button type="button" class="btn btn-success" id="submitQuiz">Submit Quiz</button>
+      </div>
+
+      <div id="quizResult" class="mt-3" style="display: none;">
+        <h5 class="text-center" style="color: #667eea;">Quiz Result</h5>
+        <p class="text-center" id="scoreDisplay"></p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Back Button -->
+    <div class="text-center mt-3">
+      <a href="/starter" class="btn btn-primary rounded-3 px-4 py-2">
+        ⬅ Back to Home
+      </a>
+    </div>
+
+    {% if metrics %}
+    <div class="card rounded-4 p-4 mt-4" style="background: rgba(255, 255, 255, 0.9);">
+      <h2 class="mb-3" style="color: #667eea; font-weight: 600; font-size: 1.25rem;">📊 Validation Metrics</h2>
+
+      <div class="row text-center">
+        <div class="col-md-3">
+          <p class="text-muted">ROUGE-1</p>
+          <p class="h5" style="color: #667eea;">{{ metrics.rouge1 }}</p>
+        </div>
+        <div class="col-md-3">
+          <p class="text-muted">ROUGE-2</p>
+          <p class="h5" style="color: #667eea;">{{ metrics.rouge2 }}</p>
+        </div>
+        <div class="col-md-3">
+          <p class="text-muted">ROUGE-L</p>
+          <p class="h5" style="color: #667eea;">{{ metrics.rougeL }}</p>
+        </div>
+        <div class="col-md-3">
+          <p class="text-muted">Cosine Similarity</p>
+          <p class="h5" style="color: #667eea;">{{ metrics.cosine }}</p>
+        </div>
+      </div>
+
+      <div class="mt-4 text-center">
+        <h3 class="h6" style="color: #11998e;">Overall Quality Score</h3>
+        <div class="w-100 bg-light rounded-pill" style="height: 16px; margin-top: 8px;">
+          <div class="bg-success rounded-pill" style="height: 16px; width: {{ metrics.overall * 10 }}%"></div>
+        </div>
+        <p class="mt-2 text-muted">{{ metrics.overall }}/10</p>
+      </div>
+    </div>
+
+    <h2 class="mt-4 mb-3" style="color: #667eea; font-weight: 600; font-size: 1.25rem;">Summary Metrics</h2>
+    <canvas id="metricsChart" width="400" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const ctx = document.getElementById('metricsChart');
+      const metricsData = {{ metrics| tojson }};
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['ROUGE-1', 'ROUGE-2', 'ROUGE-L', 'Cosine', 'Overall'],
+          datasets: [{
+            label: 'Evaluation Scores',
+            data: [metricsData.rouge1, metricsData.rouge2, metricsData.rougeL, metricsData.cosine, metricsData.overall],
+            borderWidth: 2,
+            backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#11998e', '#28a745']
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 10
+            }
+          }
+        }
+      });
+    </script>
+    {% endif %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const attendQuizBtn = document.getElementById('attendQuizBtn');
+      const flashcardsSection = document.getElementById('flashcardsSection');
+      const submitQuizBtn = document.getElementById('submitQuiz');
+
+      if (attendQuizBtn) {
+        attendQuizBtn.addEventListener('click', function () {
+          flashcardsSection.style.display = 'block';
+          attendQuizBtn.style.display = 'none';
+        });
+      }
+
+      if (submitQuizBtn) {
+        submitQuizBtn.addEventListener('click', function () {
+          const form = document.getElementById('quizForm');
+          const formData = new FormData(form);
+
+          const mcq_answers = {};
+          const short_answers = {};
+
+          for (let [key, value] of formData.entries()) {
+            if (key.startsWith('mcq_')) {
+              const index = key.split('_')[1];
+              mcq_answers[index] = value;
+            } else if (key.startsWith('short_')) {
+              const index = key.split('_')[1];
+              short_answers[index] = value;
+            }
+          }
+
+          fetch('/submit_flashcards', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              mcq_answers: mcq_answers,
+              short_answers: short_answers,
+              summary: {{ summary| tojson }}
+            })
+          })
+          .then(function (response) { return response.json(); })
+      .then(function (data) {
+        const quizResultDiv = document.getElementById('quizResult');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        scoreDisplay.textContent = 'Your score: ' + data.score + '/' + data.total;
+        quizResultDiv.style.display = 'block';
+      })
+      .catch(function (error) {
+        console.error('Error:', error);
+        alert('Error submitting quiz.');
+      });
+        });
+      }
+    });
+  </script>
+
+  <!-- AI Assistant Button -->
+  <button class="ai-assistant-btn" id="aiAssistantBtn" title="Ask AI Assistant">
+    <i class="fas fa-robot"></i>
+  </button>
+
+  <!-- Chat Panel -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <span>🤖 AI Assistant</span>
+      <button class="chat-close" id="chatClose">&times;</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-message assistant">
+        Hi! I'm your AI assistant. Ask me anything about the document you just summarized!
+      </div>
+    </div>
+    <div class="chat-input-container">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Ask about the document..." />
+      <button class="chat-send" id="chatSend">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Store document context for chat -->
+  <script>
+    const documentContext = {{ summary| tojson | safe }};
+  </script>
+
+  <script>
+    // AI Assistant Chat functionality
+    document.addEventListener('DOMContentLoaded', function () {
+      const aiBtn = document.getElementById('aiAssistantBtn');
+      const chatPanel = document.getElementById('chatPanel');
+      const chatClose = document.getElementById('chatClose');
+      const chatInput = document.getElementById('chatInput');
+      const chatSend = document.getElementById('chatSend');
+      const chatMessages = document.getElementById('chatMessages');
+
+      // Toggle chat panel
+      aiBtn.addEventListener('click', function () {
+        chatPanel.classList.toggle('active');
+      });
+
+      chatClose.addEventListener('click', function () {
+        chatPanel.classList.remove('active');
+      });
+
+      // Send message function
+      function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Add user message to chat
+        const userDiv = document.createElement('div');
+        userDiv.className = 'chat-message user';
+        userDiv.textContent = message;
+        chatMessages.appendChild(userDiv);
+
+        // Clear input
+        chatInput.value = '';
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'chat-message assistant typing-indicator';
+        typingDiv.innerHTML = '<span></span><span></span><span></span>';
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Send to backend
+        fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: message,
+            context: documentContext
+          })
+        })
+          .then(response => response.json())
+          .then(data => {
+            // Remove typing indicator
+            typingDiv.remove();
+
+            // Add assistant response
+            const assistantDiv = document.createElement('div');
+            assistantDiv.className = 'chat-message assistant';
+            assistantDiv.textContent = data.response;
+            chatMessages.appendChild(assistantDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          })
+          .catch(error => {
+            typingDiv.remove();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'chat-message assistant';
+            errorDiv.textContent = 'Sorry, something went wrong. Please try again.';
+            chatMessages.appendChild(errorDiv);
+          });
+      }
+
+      // Send on button click
+      chatSend.addEventListener('click', sendMessage);
+
+      // Send on Enter key
+      chatInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendMessage();
+      });
+    });
+  </script>
+</body>
+
+</html>

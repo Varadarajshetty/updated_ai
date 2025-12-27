@@ -1,0 +1,7 @@
+- [x] Update summarize_with_huggingface to generate 400-500 word summaries for higher ROUGE.
+- [x] Update rewrite_narration_with_groq to output paragraphs instead of numbered points, emphasizing verbatim copying.
+- [x] Update summarize_text to increase token limit and format as bullet points.
+- [x] Test summarization to verify higher ROUGE scores and improved formatting.
+- [x] Add flashcards feature: generate MCQ and one-sentence questions from summary, allow user to answer, calculate score.
+- [x] Update result.html to include flashcards button and modal.
+- [x] Add flashcards generation function and route in main.py.

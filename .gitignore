@@ -1,0 +1,15 @@
+# ExplainIT AI - ignore these files
+.env
+*.pyc
+__pycache__/
+.venv/
+venv/
+instance/
+*.db
+uploads/
+static/audio/
+*.mp3
+*.m4a
+*.mp4
+audio_temp*
+.git/

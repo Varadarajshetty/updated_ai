@@ -1,0 +1,17 @@
+requests
+flask
+werkzeug
+pdfplumber
+pytesseract
+pdf2image
+openai
+youtube_transcript_api
+yt_dlp
+scikit-learn
+rouge_score
+flask-sqlalchemy
+pydub
+pymupdf
+groq
+gunicorn
+python-dotenv

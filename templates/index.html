@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExplainIT AI - Smart Summarization</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #E8D5F2 0%, #DCD1E8 50%, #C9B8E0 100%);
+      height: 100vh;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Decorative circles */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      pointer-events: none;
+    }
+
+    body::before {
+      width: 120px;
+      height: 120px;
+      top: 20px;
+      left: 120px;
+    }
+
+    body::after {
+      width: 80px;
+      height: 80px;
+      top: 30px;
+      right: 80px;
+    }
+
+    .main-container {
+      display: flex;
+      height: 90vh;
+      width: 95%;
+      border: 3px solid #6B5B95;
+      background: lavender;
+      border-radius: 40px;
+      position: relative;
+      overflow: visible;
+    }
+
+    .main-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      /* Increased width */
+      background: linear-gradient(180deg, #6B7BC4 0%, #5D6BA8 100%);
+      padding: 30px 0;
+      color: white;
+      border-radius: 40px 0 0 40px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .logo {
+      padding: 0 25px 30px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      padding: 15px 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.3s;
+      font-weight: 500;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border-left: 4px solid white;
+      padding-left: 21px;
+    }
+
+    .nav-item i {
+      font-size: 1.2rem;
+      width: 24px;
+    }
+
+    /* History List Styling */
+    #historyList {
+      flex: 1;
+      overflow-y: auto;
+      max-height: calc(100% - 150px);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+      padding-bottom: 20px;
+      /* Add bottom padding */
+    }
+
+    #historyList::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #historyList::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #historyList::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    /* History Section */
+    .history-section {
+      padding: 10px 0;
+      /* Ensure it takes remaining space if needed */
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      /* Fix for flex nested scroll */
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px 15px 25px;
+      /* Adjusted padding */
+      flex-shrink: 0;
+      /* Prevent header from shrinking */
+    }
+
+    .clear-all-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: rgba(255, 255, 255, 0.8);
+      /* Better contrast */
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .clear-all-btn:hover {
+      background: rgba(255, 100, 100, 0.5);
+      /* More visible hover */
+      color: white;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 15px 10px 25px;
+      /* Increased padding */
+      font-size: 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: background 0.2s;
+      color: rgba(255, 255, 255, 0.9);
+      /* Brighter text */
+      position: relative;
+      /* For absolute positioning if needed, but flex is better */
+    }
+
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .history-item-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 10px;
+      /* Space between text and button */
+      line-height: 1.4;
+    }
+
+    .history-delete-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      padding: 6px;
+      /* Larger hit area */
+      cursor: pointer;
+      font-size: 0.9rem;
+      /* Slightly larger icon */
+      transition: all 0.2s;
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      /* Circular hover */
+    }
+
+    .history-item:hover .history-delete-btn {
+      opacity: 1;
+    }
+
+    .history-delete-btn:hover {
+      color: #ff6b6b;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      background: #F8F9FA;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .content-wrapper {
+      padding: 25px 30px;
+      flex: 1;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      color: #5D6BA8;
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6B7BC4, #A17BC4);
+    }
+
+    .user-info {
+      text-align: right;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .user-id {
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    /* Profile Dropdown */
+    .profile-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 10px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      min-width: 150px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .user-profile:hover .profile-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: #333;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      border-radius: 12px;
+    }
+
+    .dropdown-item:hover {
+      background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+      color: #6B5B95;
+    }
+
+    .dropdown-item i {
+      font-size: 1rem;
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-weight: 600;
+      color: #333;
+      display: flex;
+      align-items: center;
+    }
+
+    .filter-select {
+      padding: 8px 35px 8px 15px;
+      border: 1px solid #E0E0E0;
+      border-radius: 10px;
+      background: white;
+      color: #666;
+      font-size: 0.9rem;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
+    /* Course Cards */
+    .course-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .course-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .course-card.purple-bg {
+      background: linear-gradient(135deg, #F3EFFF 0%, #E8E0FF 100%);
+    }
+
+    .course-card.pink-bg {
+      background: linear-gradient(135deg, #FFE8F0 0%, #FFE0EB 100%);
+    }
+
+    .course-card.green-bg {
+      background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    }
+
+    .course-icon {
+      width: 120px;
+      height: 100px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      position: relative;
+    }
+
+    .course-details {
+      flex: 1;
+    }
+
+    .course-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .course-description {
+      color: #777;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .course-author {
+      color: #999;
+      font-size: 0.85rem;
+    }
+
+    .course-author span {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .course-arrow {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8B7BC4 0%, #7B6BC4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .course-arrow:hover {
+      transform: scale(1.1);
+    }
+
+    .course-arrow.green-arrow {
+      background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+    }
+
+    .btn-submit.btn-green {
+      background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+    }
+
+    .btn-submit.btn-green:hover {
+      background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+    }
+
+    /* Right Sidebar */
+    .right-sidebar {
+      width: 280px;
+      height: 100%;
+      padding: 30px 20px;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      border-radius: 0 40px 40px 0;
+      overflow: hidden;
+    }
+
+    .calendar-widget {
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+
+    .todo-widget {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .todo-list-container {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 300px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(107, 123, 196, 0.3) transparent;
+    }
+
+    .todo-list-container::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .todo-list-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .todo-list-container::-webkit-scrollbar-thumb {
+      background: rgba(107, 123, 196, 0.3);
+      border-radius: 3px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .calendar-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #5D6BA8;
+    }
+
+    .todo-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #5D6BA8;
+    }
+
+    .calendar-nav {
+      display: flex;
+      gap: 10px;
+    }
+
+    .calendar-nav button {
+      width: 30px;
+      height: 30px;
+      border: none;
+      background: #F5F5F5;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .calendar-nav button:hover {
+      background: #E8E8E8;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+
+    .calendar-day-label {
+      font-size: 0.75rem;
+      color: #999;
+      font-weight: 600;
+      padding: 5px 0;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .calendar-day:hover {
+      background: #F5F5F5;
+    }
+
+    .calendar-day.active {
+      background: #6B7BC4;
+      color: white;
+      font-weight: 600;
+    }
+
+    .calendar-day.secondary {
+      background: #E8E0FF;
+      color: #6B7BC4;
+      font-weight: 600;
+    }
+
+    /* Online Users */
+    .online-users-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .online-users-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #5D6BA8;
+    }
+
+    .see-all {
+      color: #6B7BC4;
+      font-size: 0.85rem;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .user-list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #F5F5F5;
+    }
+
+    .user-list-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6B7BC4, #A17BC4);
+      flex-shrink: 0;
+    }
+
+    .user-list-info {
+      flex: 1;
+    }
+
+    .user-list-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .user-list-id {
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6B7BC4;
+    }
+
+    /* Form Styling */
+    .form-control {
+      border: 2px solid #E8E8E8;
+      border-radius: 12px;
+      padding: 12px 16px;
+      transition: all 0.3s;
+    }
+
+    .form-control:focus {
+      border-color: #6B7BC4;
+      box-shadow: 0 0 0 3px rgba(107, 123, 196, 0.1);
+      outline: none;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #6B7BC4 0%, #8B7BC4 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 30px;
+      font-weight: 600;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(107, 123, 196, 0.3);
+    }
+
+    .btn-purple {
+      background: linear-gradient(135deg, #F3EFFF 0%, #E8E0FF 100%);
+      color: #6B7BC4;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 30px;
+      font-weight: 600;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .btn-purple:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(107, 123, 196, 0.3);
+    }
+
+    .btn-pink {
+      background: linear-gradient(135deg, #FFE8F0 0%, #FFE0EB 100%);
+      color: #FF6B9D;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 30px;
+      font-weight: 600;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .btn-pink:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 157, 0.3);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1400px) {
+      .main-container {
+        max-width: 100%;
+        margin: 0;
+      }
+
+      .sidebar {
+        width: 220px;
+      }
+
+      .right-sidebar {
+        width: 280px;
+      }
+    }
+
+    @media (max-width: 1000px) {
+      .sidebar {
+        width: 180px;
+      }
+
+      .right-sidebar {
+        width: 240px;
+      }
+
+      .main-content {
+        padding: 20px;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+
+      .sidebar,
+      .right-sidebar {
+        display: none;
+      }
+
+      .main-content {
+        padding: 10px;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .course-card {
+        padding: 20px;
+        gap: 20px;
+      }
+
+      .course-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+      }
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .loading-content {
+      background: white;
+      padding: 40px 60px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #E8E8E8;
+      border-top: 5px solid #6B7BC4;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .loading-status {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar-container {
+      width: 300px;
+      height: 8px;
+      background: #E8E8E8;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #6B7BC4, #A17BC4);
+      width: 0%;
+      animation: progress 30s ease-out forwards;
+      border-radius: 10px;
+    }
+
+    @keyframes progress {
+      0% {
+        width: 0%;
+      }
+
+      10% {
+        width: 15%;
+      }
+
+      30% {
+        width: 35%;
+      }
+
+      50% {
+        width: 55%;
+      }
+
+      70% {
+        width: 70%;
+      }
+
+      90% {
+        width: 85%;
+      }
+
+      100% {
+        width: 95%;
+      }
+    }
+
+    .loading-steps {
+      font-size: 0.85rem;
+      color: #999;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-title">Processing Your Content</div>
+      <div class="loading-status" id="loadingStatus">Uploading file...</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="loading-steps" id="loadingSteps">This may take a moment...</div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        📚 ExplainIT AI
+      </div>
+      <!-- Spacer to push history down -->
+      <div style="flex: 1; min-height: 50px;"></div>
+
+      <!-- History Section -->
+      <div class="history-section">
+        <div class="history-header">
+          <div class="nav-item active" id="historyNav" style="padding: 10px 25px;">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+          </div>
+          <button class="clear-all-btn" id="clearAllBtn" title="Clear All History">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+        <div id="historyList">
+          <!-- History items will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="content-wrapper">
+        <div class="header">
+          <h1>My Courses</h1>
+          <div class="header-right">
+            <!-- Profile with Dropdown -->
+            <div class="user-profile" id="profileDropdownTrigger" style="cursor: pointer; position: relative;">
+              <div class="user-info">
+                <div class="user-name">{{ user_name.split('@')[0] if user_name else 'User' }}</div>
+              </div>
+              <div class="user-avatar"></div>
+              <!-- Dropdown Menu -->
+              <div class="profile-dropdown" id="profileDropdown">
+                <a href="/logout" class="dropdown-item">
+                  <i class="fas fa-sign-out-alt me-2"></i>Logout
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PDF Summarizer Card -->
+        <div class="course-card purple-bg">
+          <div class="course-icon">
+            💻
+          </div>
+          <div class="course-details">
+            <h3 class="course-title">PDF Summarization</h3>
+            <p class="course-description">Upload your PDF documents and get instant AI-powered summaries with key
+              insights and main points extracted automatically.</p>
+            <form method="POST" action="/pdf" enctype="multipart/form-data" class="mt-3">
+              <input type="file" name="file" accept=".pdf" class="form-control mb-2" required>
+              <button type="submit" class="btn-submit">
+                <i class="fas fa-magic me-2"></i>Summarize PDF
+              </button>
+            </form>
+          </div>
+          <div class="course-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+        </div>
+
+        <!-- YouTube Summarizer Card -->
+        <div class="course-card pink-bg">
+          <div class="course-icon">
+            🎥
+          </div>
+          <div class="course-details">
+            <h3 class="course-title">YouTube Video Summarization</h3>
+            <p class="course-description">Paste any YouTube video URL and receive a comprehensive summary of the video
+              content, saving you time and effort.</p>
+            <form method="POST" action="/youtube" class="mt-3">
+              <div class="d-flex gap-2">
+                <input type="text" name="youtube_url" placeholder="Enter YouTube URL" class="form-control" required>
+                <button type="submit" class="btn-submit">
+                  <i class="fas fa-magic me-2"></i>Summarize
+                </button>
+              </div>
+            </form>
+          </div>
+          <div class="course-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+        </div>
+
+        <!-- Video Upload Card -->
+        <div class="course-card green-bg">
+          <div class="course-icon">
+            📹
+          </div>
+          <div class="course-details">
+            <h3 class="course-title">Video File Summarization</h3>
+            <p class="course-description">Upload any video file (MP4, MKV, AVI, MOV, WebM) and get an AI-powered
+              summary. Uses ultra-fast Groq transcription!</p>
+            <form method="POST" action="/video" enctype="multipart/form-data" class="mt-3">
+              <input type="file" name="video" accept=".mp4,.mkv,.avi,.mov,.webm,.m4v" class="form-control mb-2"
+                required>
+              <button type="submit" class="btn-submit btn-green">
+                <i class="fas fa-video me-2"></i>Summarize Video
+              </button>
+            </form>
+          </div>
+          <div class="course-arrow green-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="right-sidebar">
+      <div class="calendar-widget">
+        <div class="calendar-header">
+          <h3 class="calendar-title">Nov 2020</h3>
+          <div class="calendar-nav">
+            <button><i class="fas fa-chevron-left"></i></button>
+            <button><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="calendar-grid">
+          <div class="calendar-day-label">Mon</div>
+          <div class="calendar-day-label">Tue</div>
+          <div class="calendar-day-label">Wed</div>
+          <div class="calendar-day-label">Thu</div>
+          <div class="calendar-day-label">Fri</div>
+          <div class="calendar-day-label">Sat</div>
+          <div class="calendar-day-label">Sun</div>
+          <div class="calendar-day">1</div>
+          <div class="calendar-day">2</div>
+          <div class="calendar-day">3</div>
+          <div class="calendar-day">4</div>
+          <div class="calendar-day">5</div>
+          <div class="calendar-day">6</div>
+          <div class="calendar-day">7</div>
+          <div class="calendar-day">8</div>
+          <div class="calendar-day active">9</div>
+          <div class="calendar-day">10</div>
+          <div class="calendar-day">11</div>
+          <div class="calendar-day">12</div>
+          <div class="calendar-day secondary">13</div>
+          <div class="calendar-day">14</div>
+          <div class="calendar-day">15</div>
+          <div class="calendar-day">16</div>
+          <div class="calendar-day">17</div>
+          <div class="calendar-day">18</div>
+          <div class="calendar-day">19</div>
+          <div class="calendar-day">20</div>
+          <div class="calendar-day">21</div>
+          <div class="calendar-day">22</div>
+          <div class="calendar-day">23</div>
+          <div class="calendar-day">24</div>
+          <div class="calendar-day">25</div>
+          <div class="calendar-day">26</div>
+          <div class="calendar-day">27</div>
+          <div class="calendar-day">28</div>
+          <div class="calendar-day">29</div>
+          <div class="calendar-day">30</div>
+        </div>
+      </div>
+
+      <div class="todo-widget">
+        <div class="todo-header">
+          <h3 class="todo-title">To-Do List</h3>
+        </div>
+        <div class="add-todo">
+          <input type="text" id="todo-title" placeholder="Task title" class="form-control mb-2">
+          <input type="date" id="todo-date" class="form-control mb-2">
+          <input type="time" id="todo-time" class="form-control mb-2">
+          <button id="add-todo-btn" class="btn-submit w-100">Add Reminder</button>
+        </div>
+        <!-- Scrollable Todo List Container -->
+        <div class="todo-list-container">
+          <div id="todo-list" class="mt-3">
+            <!-- To-do items will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Loading Overlay Functions
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const loadingSteps = document.getElementById('loadingSteps');
+    const progressBar = document.getElementById('progressBar');
+
+    const processingSteps = {
+      'pdf': [
+        { text: 'Uploading PDF...', time: 0 },
+        { text: 'Extracting text from PDF...', time: 2000 },
+        { text: 'Analyzing content...', time: 5000 },
+        { text: 'Generating summary...', time: 8000 },
+        { text: 'Creating flashcards...', time: 15000 },
+        { text: 'Almost done...', time: 20000 }
+      ],
+      'youtube': [
+        { text: 'Fetching video information...', time: 0 },
+        { text: 'Extracting transcript...', time: 2000 },
+        { text: 'Processing audio (if needed)...', time: 5000 },
+        { text: 'Analyzing content...', time: 10000 },
+        { text: 'Generating comprehensive summary...', time: 15000 },
+        { text: 'Creating flashcards...', time: 25000 },
+        { text: 'Almost done...', time: 35000 }
+      ],
+      'video': [
+        { text: 'Uploading video file...', time: 0 },
+        { text: 'Extracting audio from video...', time: 3000 },
+        { text: 'Transcribing audio with AI...', time: 8000 },
+        { text: 'Analyzing transcript...', time: 20000 },
+        { text: 'Generating comprehensive summary...', time: 30000 },
+        { text: 'Creating flashcards...', time: 45000 },
+        { text: 'Almost done...', time: 55000 }
+      ]
+    };
+
+    function showLoading(type) {
+      loadingOverlay.classList.add('active');
+      progressBar.style.animation = 'none';
+      progressBar.offsetHeight; // Trigger reflow
+      progressBar.style.animation = 'progress 60s ease-out forwards';
+
+      const steps = processingSteps[type] || processingSteps['pdf'];
+      steps.forEach(step => {
+        setTimeout(() => {
+          if (loadingOverlay.classList.contains('active')) {
+            loadingStatus.textContent = step.text;
+          }
+        }, step.time);
+      });
+    }
+
+    function hideLoading() {
+      loadingOverlay.classList.remove('active');
+    }
+
+    // Attach loading to all forms
+    document.addEventListener('DOMContentLoaded', () => {
+      // PDF form
+      const pdfForm = document.querySelector('form[action="/pdf"]');
+      if (pdfForm) {
+        pdfForm.addEventListener('submit', () => showLoading('pdf'));
+      }
+
+      // YouTube form
+      const youtubeForm = document.querySelector('form[action="/youtube"]');
+      if (youtubeForm) {
+        youtubeForm.addEventListener('submit', () => showLoading('youtube'));
+      }
+
+      // Video form
+      const videoForm = document.querySelector('form[action="/video"]');
+      if (videoForm) {
+        videoForm.addEventListener('submit', () => showLoading('video'));
+      }
+    });
+
+    // History functionality
+    const historyList = document.getElementById('historyList');
+
+    // Load history on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+      renderCalendar();
+    });
+
+    function loadHistory() {
+      fetch('/history')
+        .then(response => response.json())
+        .then(data => {
+          displayHistory(data.history);
+        })
+        .catch(err => console.error('Error loading history:', err));
+    }
+
+    function displayHistory(historyItems) {
+      const historyContainer = document.getElementById('historyList');
+      historyContainer.innerHTML = '';
+
+      if (historyItems.length === 0) {
+        historyContainer.innerHTML = '<div class="history-item" style="justify-content: center; color: rgba(255,255,255,0.5);">No history</div>';
+        return;
+      }
+
+      historyItems.forEach(item => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <span class="history-item-title">${item.title}</span>
+          <button class="history-delete-btn" onclick="event.stopPropagation(); deleteHistory(${item.id});" title="Delete">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        historyItem.addEventListener('click', () => {
+          window.location.href = `/history/${item.id}`;
+        });
+        historyContainer.appendChild(historyItem);
+      });
+    }
+
+    // Delete single history item
+    function deleteHistory(id) {
+      if (confirm('Delete this history item?')) {
+        fetch(`/history/${id}/delete`, { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              loadHistory();
+            }
+          })
+          .catch(err => console.error('Error deleting history:', err));
+      }
+    }
+
+    // Clear all history
+    document.getElementById('clearAllBtn').addEventListener('click', function () {
+      if (confirm('Delete ALL history? This cannot be undone.')) {
+        fetch('/history/clear-all', { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              loadHistory();
+            }
+          })
+          .catch(err => console.error('Error clearing history:', err));
+      }
+    });
+
+    // Calendar functionality
+    let currentDate = new Date();
+
+    function renderCalendar() {
+      const calendarTitle = document.querySelector('.calendar-title');
+      const calendarGrid = document.querySelector('.calendar-grid');
+
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      calendarTitle.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+      // Clear existing grid
+      calendarGrid.innerHTML = '';
+
+      // Add day labels
+      const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      dayLabels.forEach(day => {
+        const label = document.createElement('div');
+        label.className = 'calendar-day-label';
+        label.textContent = day;
+        calendarGrid.appendChild(label);
+      });
+
+      // Get first day of month and last day
+      const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Adjust for Monday start
+
+      // Add empty cells for days before first day
+      for (let i = 0; i < startDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day';
+        calendarGrid.appendChild(emptyDay);
+      }
+
+      // Add days of the month
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = day;
+
+        // Highlight current day
+        if (day === new Date().getDate() && currentDate.getMonth() === new Date().getMonth() && currentDate.getFullYear() === new Date().getFullYear()) {
+          dayElement.classList.add('active');
+        }
+
+        calendarGrid.appendChild(dayElement);
+      }
+    }
+
+    // Navigation buttons
+    document.querySelector('.calendar-nav button:first-child').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    });
+
+    document.querySelector('.calendar-nav button:last-child').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    });
+
+    // To-Do List functionality
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+    function renderTodos() {
+      const todoList = document.getElementById('todo-list');
+      todoList.innerHTML = '';
+
+      if (todos.length === 0) {
+        todoList.innerHTML = '<div style="color: #999; font-size: 0.9rem; text-align: center; padding: 20px;">No reminders set</div>';
+        return;
+      }
+
+      todos.forEach((todo, index) => {
+        const todoItem = document.createElement('div');
+        todoItem.className = 'todo-item';
+        todoItem.style.display = 'flex';
+        todoItem.style.alignItems = 'center';
+        todoItem.style.gap = '10px';
+        todoItem.style.padding = '10px 0';
+        todoItem.style.borderBottom = '1px solid #F5F5F5';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = todo.completed;
+        checkbox.addEventListener('change', () => toggleTodo(index));
+
+        const todoContent = document.createElement('div');
+        todoContent.style.flex = '1';
+
+        const title = document.createElement('div');
+        title.textContent = todo.title;
+        title.style.fontWeight = '600';
+        title.style.fontSize = '0.9rem';
+        title.style.textDecoration = todo.completed ? 'line-through' : 'none';
+        title.style.color = todo.completed ? '#999' : '#333';
+
+        const datetime = document.createElement('div');
+        datetime.textContent = `${todo.date} at ${todo.time}`;
+        datetime.style.fontSize = '0.75rem';
+        datetime.style.color = '#999';
+
+        todoContent.appendChild(title);
+        todoContent.appendChild(datetime);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.background = 'none';
+        deleteBtn.style.color = '#999';
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.padding = '5px';
+        deleteBtn.addEventListener('click', () => deleteTodo(index));
+
+        todoItem.appendChild(checkbox);
+        todoItem.appendChild(todoContent);
+        todoItem.appendChild(deleteBtn);
+
+        todoList.appendChild(todoItem);
+      });
+    }
+
+    function addTodo() {
+      const title = document.getElementById('todo-title').value.trim();
+      const date = document.getElementById('todo-date').value;
+      const time = document.getElementById('todo-time').value;
+
+      if (!title || !date || !time) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      todos.push({
+        title,
+        date,
+        time,
+        completed: false
+      });
+
+      localStorage.setItem('todos', JSON.stringify(todos));
+      renderTodos();
+
+      // Clear form
+      document.getElementById('todo-title').value = '';
+      document.getElementById('todo-date').value = '';
+      document.getElementById('todo-time').value = '';
+    }
+
+    function toggleTodo(index) {
+      todos[index].completed = !todos[index].completed;
+      localStorage.setItem('todos', JSON.stringify(todos));
+      renderTodos();
+    }
+
+    function deleteTodo(index) {
+      todos.splice(index, 1);
+      localStorage.setItem('todos', JSON.stringify(todos));
+      renderTodos();
+    }
+
+    // Event listeners
+    document.getElementById('add-todo-btn').addEventListener('click', addTodo);
+
+    // Initialize todos on page load
+    renderTodos();
+  </script>
+</body>
+
+</html>
